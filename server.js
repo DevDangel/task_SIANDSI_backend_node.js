@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middlewares
 app.use(cors({
-  origin: ['https://task-siandsi-frontend-react.vercel.app/', 'http://localhost:3000'],
+  origin: ['https://task-siandsi-frontend-react.vercel.app', 'http://localhost:3000'],
   credentials: true
 }));
 app.use(bodyParser.json());
