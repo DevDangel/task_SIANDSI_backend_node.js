@@ -5,11 +5,27 @@ const { pool } = require('./database');
 // Obtener todas las tareas
 router.get('/', async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM tareas ORDER BY created_at DESC');
+    const [rows] = await pool.query(`
+      SELECT t.*, e.nom_estado 
+      FROM tareas t 
+      LEFT JOIN estado e ON t.estado = e.id_estado 
+      ORDER BY t.created_at DESC
+    `);
     res.json(rows);
   } catch (error) {
     console.error('Error al obtener tareas:', error);
     res.status(500).json({ error: 'Error al obtener tareas' });
+  }
+});
+
+// Obtener todos los estados
+router.get('/estados', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM estado ORDER BY id_estado ASC');
+    res.json(rows);
+  } catch (error) {
+    console.error('Error al obtener estados:', error);
+    res.status(500).json({ error: 'Error al obtener estados' });
   }
 });
 
@@ -18,7 +34,10 @@ router.get('/buscar/:codigo', async (req, res) => {
   try {
     const { codigo } = req.params;
     const [rows] = await pool.query(
-      'SELECT * FROM tareas WHERE codigo_unico = ?',
+      `SELECT t.*, e.nom_estado 
+       FROM tareas t 
+       LEFT JOIN estado e ON t.estado = e.id_estado 
+       WHERE t.codigo_unico = ?`,
       [codigo]
     );
     
@@ -38,10 +57,12 @@ router.get('/search', async (req, res) => {
   try {
     const { q } = req.query;
     const [rows] = await pool.query(
-      `SELECT * FROM tareas 
-       WHERE codigo_unico LIKE ? 
-       OR titulo LIKE ? 
-       ORDER BY created_at DESC`,
+      `SELECT t.*, e.nom_estado 
+       FROM tareas t 
+       LEFT JOIN estado e ON t.estado = e.id_estado 
+       WHERE t.codigo_unico LIKE ? 
+       OR t.titulo LIKE ? 
+       ORDER BY t.created_at DESC`,
       [`%${q}%`, `%${q}%`]
     );
     res.json(rows);
@@ -54,7 +75,7 @@ router.get('/search', async (req, res) => {
 // Crear nueva tarea
 router.post('/', async (req, res) => {
   try {
-    const { codigo_unico, titulo, url_tarea, empresa, submodulo, rama, hash_commit } = req.body;
+    const { codigo_unico, titulo, url_tarea, empresa, submodulo, rama, estado, hash_commit } = req.body;
     
     // Validar campos requeridos
     if (!codigo_unico || !titulo) {
@@ -62,9 +83,9 @@ router.post('/', async (req, res) => {
     }
     
     const [result] = await pool.query(
-      `INSERT INTO tareas (codigo_unico, titulo, url_tarea, empresa, submodulo, rama, hash_commit)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [codigo_unico, titulo, url_tarea, empresa, submodulo, rama, hash_commit]
+      `INSERT INTO tareas (codigo_unico, titulo, url_tarea, empresa, submodulo, rama, estado, hash_commit)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [codigo_unico, titulo, url_tarea, empresa, submodulo, rama, estado, hash_commit]
     );
     
     res.status(201).json({
@@ -84,13 +105,13 @@ router.post('/', async (req, res) => {
 router.put('/:codigo', async (req, res) => {
   try {
     const { codigo } = req.params;
-    const { titulo, url_tarea, empresa, submodulo, rama, hash_commit } = req.body;
+    const { titulo, url_tarea, empresa, submodulo, rama, estado, hash_commit } = req.body;
     
     const [result] = await pool.query(
       `UPDATE tareas 
-       SET titulo = ?, url_tarea = ?, empresa = ?, submodulo = ?, rama = ?, hash_commit = ?
+       SET titulo = ?, url_tarea = ?, empresa = ?, submodulo = ?, rama = ?, estado = ?, hash_commit = ?
        WHERE codigo_unico = ?`,
-      [titulo, url_tarea, empresa, submodulo, rama, hash_commit, codigo]
+      [titulo, url_tarea, empresa, submodulo, rama, estado, hash_commit, codigo]
     );
     
     if (result.affectedRows === 0) {
