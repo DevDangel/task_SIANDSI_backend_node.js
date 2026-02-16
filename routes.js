@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('./database');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 // Obtener todas las tareas
 router.get('/', async (req, res) => {
@@ -175,6 +177,30 @@ router.post('/:id_tarea/notas', async (req, res) => {
   } catch (error) {
     console.error('Error al guardar nota:', error);
     res.status(500).json({ error: 'Error al guardar nota' });
+  }
+});
+
+router.post('/login', async (req, res) => {
+  try {
+    const { usuario, password } = req.body;
+
+    const [rows] = await pool.query('SELECT * FROM usuarios WHERE usuario = ?', [usuario]);
+    if (rows.length === 0) {
+      return res.status(401).json({ error: 'Usuario no encontrado' });
+    }
+
+    const user = rows[0];
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      return res.status(401).json({ error: 'Contraseña incorrecta' });
+    }
+
+    const token = jwt.sign({ id: user.id_usuario, usuario: user.usuario }, process.env.JWT_SECRET || 'secretkey', { expiresIn: '24h' });
+
+    res.json({ token, usuario: user.usuario });
+  } catch (error) {
+    console.error('Error en login:', error);
+    res.status(500).json({ error: 'Error en login' });
   }
 });
 

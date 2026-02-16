@@ -1,5 +1,6 @@
 const mysql = require('mysql2');
 require('dotenv').config();
+const bcrypt = require('bcryptjs');
 
 // Crear pool de conexiones
 const pool = mysql.createPool({
@@ -12,6 +13,10 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0
 });
+
+if (pool){
+  console.log('✅ Conexión a la base de datos establecida exitosamente');
+}
 
 
 
@@ -54,6 +59,14 @@ const createNotasTableQuery = `
   )
 `;
 
+const createUsuariosTableQuery = `
+  CREATE TABLE IF NOT EXISTS usuarios (
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+    usuario VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL
+  )
+`;
+
 // Inicializar base de datos
 const initDB = async () => {
   try {
@@ -62,8 +75,16 @@ const initDB = async () => {
     await promisePool.query(createEstadosTableQuery);
     console.log('✅ Tabla "estados" verificada/creada exitosamente');
     await promisePool.query(createNotasTableQuery);
-    console.log('✅ Tabla "notas" verificada/creada exitosamente');
-  } catch (error) {
+    console.log('✅ Tabla "notas" verificada/creada exitosamente');    await promisePool.query(createUsuariosTableQuery);
+    console.log('✅ Tabla "usuarios" verificada/creada exitosamente');
+
+    // Crear usuario por defecto
+    const hashedPassword = await bcrypt.hash('Herrerad18dom', 10);
+    await promisePool.query(
+      'INSERT IGNORE INTO usuarios (usuario, password) VALUES (?, ?)',
+      ['DevDangel98', hashedPassword]
+    );
+    console.log('✅ Usuario "DevDangel98" creado');  } catch (error) {
     console.error('❌ Error al crear tablas:', error);
     throw error;
   }
