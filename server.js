@@ -18,7 +18,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
-app.use('/api/tareas', tasksRoutes);
+app.use('/api', tasksRoutes);
 
 // Ruta de prueba
 app.get('/', (req, res) => {

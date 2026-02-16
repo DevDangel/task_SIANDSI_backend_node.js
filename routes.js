@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 // Obtener todas las tareas
-router.get('/', async (req, res) => {
+router.get('/tareas', async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT t.*, e.nom_estado 
@@ -21,7 +21,7 @@ router.get('/', async (req, res) => {
 });
 
 // Obtener todos los estados
-router.get('/estados', async (req, res) => {
+router.get('/tareas/estados', async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT * FROM estado ORDER BY id_estado ASC');
     res.json(rows);
@@ -32,7 +32,7 @@ router.get('/estados', async (req, res) => {
 });
 
 // Buscar tarea por código único
-router.get('/buscar/:codigo', async (req, res) => {
+router.get('/tareas/buscar/:codigo', async (req, res) => {
   try {
     const { codigo } = req.params;
     const [rows] = await pool.query(
@@ -75,7 +75,7 @@ router.get('/search', async (req, res) => {
 });
 
 // Crear nueva tarea
-router.post('/', async (req, res) => {
+router.post('/tareas', async (req, res) => {
   try {
     const { codigo_unico, titulo, url_tarea, empresa, submodulo, rama, estado, hash_commit } = req.body;
     
@@ -104,7 +104,7 @@ router.post('/', async (req, res) => {
 });
 
 // Actualizar tarea
-router.put('/:codigo', async (req, res) => {
+router.put('/tareas/:codigo', async (req, res) => {
   try {
     const { codigo } = req.params;
     const { titulo, url_tarea, empresa, submodulo, rama, estado, hash_commit } = req.body;
@@ -128,7 +128,7 @@ router.put('/:codigo', async (req, res) => {
 });
 
 // Obtener tarea por ID
-router.get('/:id', async (req, res) => {
+router.get('/tareas/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const [rows] = await pool.query('SELECT * FROM tareas WHERE id = ?', [id]);
@@ -145,7 +145,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Obtener notas de una tarea
-router.get('/:id_tarea/notas', async (req, res) => {
+router.get('/tareas/:id_tarea/notas', async (req, res) => {
   try {
     const { id_tarea } = req.params;
     const [rows] = await pool.query('SELECT * FROM notas WHERE id_tarea = ? ORDER BY created_at DESC', [id_tarea]);
@@ -157,7 +157,7 @@ router.get('/:id_tarea/notas', async (req, res) => {
 });
 
 // Crear o actualizar nota de una tarea
-router.post('/:id_tarea/notas', async (req, res) => {
+router.post('/tareas/:id_tarea/notas', async (req, res) => {
   try {
     const { id_tarea } = req.params;
     const { nota_desc } = req.body;
