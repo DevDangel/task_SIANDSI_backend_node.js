@@ -76,15 +76,7 @@ const initDB = async () => {
     console.log('✅ Tabla "estados" verificada/creada exitosamente');
     await promisePool.query(createNotasTableQuery);
     console.log('✅ Tabla "notas" verificada/creada exitosamente');    await promisePool.query(createUsuariosTableQuery);
-    console.log('✅ Tabla "usuarios" verificada/creada exitosamente');
-
-    // Crear usuario por defecto
-    const hashedPassword = await bcrypt.hash('Herrerad18dom', 10);
-    await promisePool.query(
-      'INSERT IGNORE INTO usuarios (usuario, password) VALUES (?, ?)',
-      ['DevDangel98', hashedPassword]
-    );
-    console.log('✅ Usuario "DevDangel98" creado');  } catch (error) {
+    console.log('✅ Tabla "usuarios" verificada/creada exitosamente');  } catch (error) {
     console.error('❌ Error al crear tablas:', error);
     throw error;
   }
