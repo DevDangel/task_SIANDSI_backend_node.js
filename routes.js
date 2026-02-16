@@ -142,4 +142,40 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Obtener notas de una tarea
+router.get('/:id_tarea/notas', async (req, res) => {
+  try {
+    const { id_tarea } = req.params;
+    const [rows] = await pool.query('SELECT * FROM notas WHERE id_tarea = ? ORDER BY created_at DESC', [id_tarea]);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error al obtener notas:', error);
+    res.status(500).json({ error: 'Error al obtener notas' });
+  }
+});
+
+// Crear o actualizar nota de una tarea
+router.post('/:id_tarea/notas', async (req, res) => {
+  try {
+    const { id_tarea } = req.params;
+    const { nota_desc } = req.body;
+
+    // Verificar si ya existe una nota para esta tarea
+    const [existing] = await pool.query('SELECT id_notas FROM notas WHERE id_tarea = ?', [id_tarea]);
+
+    if (existing.length > 0) {
+      // Actualizar
+      await pool.query('UPDATE notas SET nota_desc = ? WHERE id_tarea = ?', [nota_desc, id_tarea]);
+      res.json({ message: 'Nota actualizada exitosamente' });
+    } else {
+      // Insertar
+      await pool.query('INSERT INTO notas (nota_desc, id_tarea) VALUES (?, ?)', [nota_desc, id_tarea]);
+      res.json({ message: 'Nota creada exitosamente' });
+    }
+  } catch (error) {
+    console.error('Error al guardar nota:', error);
+    res.status(500).json({ error: 'Error al guardar nota' });
+  }
+});
+
 module.exports = router;

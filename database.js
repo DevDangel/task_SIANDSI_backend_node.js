@@ -13,6 +13,8 @@ const pool = mysql.createPool({
   queueLimit: 0
 });
 
+
+
 // Usar promesas
 const promisePool = pool.promise();
 
@@ -27,8 +29,28 @@ const createTableQuery = `
     submodulo VARCHAR(255),
     rama VARCHAR(255),
     hash_commit VARCHAR(255),
+    id_estado INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_estado) REFERENCES estados(id_estado)
+  )
+`;
+
+const createEstadosTableQuery = `
+  CREATE TABLE IF NOT EXISTS estado (
+    id_estado INT AUTO_INCREMENT PRIMARY KEY,
+    nom_estado VARCHAR(100) NOT NULL
+  )
+`;
+
+const createNotasTableQuery = `
+  CREATE TABLE IF NOT EXISTS notas (
+    id_notas INT AUTO_INCREMENT PRIMARY KEY,
+    nota_desc TEXT,
+    id_tarea INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_tarea) REFERENCES tareas(id) ON DELETE CASCADE
   )
 `;
 
@@ -37,8 +59,12 @@ const initDB = async () => {
   try {
     await promisePool.query(createTableQuery);
     console.log('✅ Tabla "tareas" verificada/creada exitosamente');
+    await promisePool.query(createEstadosTableQuery);
+    console.log('✅ Tabla "estados" verificada/creada exitosamente');
+    await promisePool.query(createNotasTableQuery);
+    console.log('✅ Tabla "notas" verificada/creada exitosamente');
   } catch (error) {
-    console.error('❌ Error al crear tabla:', error);
+    console.error('❌ Error al crear tablas:', error);
     throw error;
   }
 };
