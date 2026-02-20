@@ -127,6 +127,24 @@ router.put('/tareas/:codigo', async (req, res) => {
   }
 });
 
+// Eliminar tarea
+router.delete('/tareas/:codigo', async (req, res) => {
+  try {
+    const { codigo } = req.params;
+    
+    const [result] = await pool.query('DELETE FROM tareas WHERE codigo_unico = ?', [codigo]);
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Tarea no encontrada' });
+    }
+    
+    res.json({ message: 'Tarea eliminada exitosamente' });
+  } catch (error) {
+    console.error('Error al eliminar tarea:', error);
+    res.status(500).json({ error: 'Error al eliminar tarea' });
+  }
+});
+
 // Obtener tarea por ID
 router.get('/tareas/:id', async (req, res) => {
   try {
