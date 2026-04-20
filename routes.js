@@ -8,7 +8,7 @@ const jwt = require('jsonwebtoken');
 router.get('/tareas', async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT t.*, e.nom_estado 
+      SELECT t.*, t.estado AS estado, e.nom_estado 
       FROM tareas t 
       LEFT JOIN estado e ON t.estado = e.id_estado 
       ORDER BY t.created_at DESC
@@ -36,7 +36,7 @@ router.get('/tareas/buscar/:codigo', async (req, res) => {
   try {
     const { codigo } = req.params;
     const [rows] = await pool.query(
-      `SELECT t.*, e.nom_estado 
+      `SELECT t.*, t.estado AS estado, e.nom_estado 
        FROM tareas t 
        LEFT JOIN estado e ON t.estado = e.id_estado 
        WHERE t.codigo_unico = ?`,
@@ -59,7 +59,7 @@ router.get('/search', async (req, res) => {
   try {
     const { q } = req.query;
     const [rows] = await pool.query(
-      `SELECT t.*, e.nom_estado 
+      `SELECT t.*, t.estado AS estado, e.nom_estado 
        FROM tareas t 
        LEFT JOIN estado e ON t.estado = e.id_estado 
        WHERE t.codigo_unico LIKE ? 
@@ -78,6 +78,7 @@ router.get('/search', async (req, res) => {
 router.post('/tareas', async (req, res) => {
   try {
     const { codigo_unico, titulo, url_tarea, empresa, submodulo, rama, estado, hash_commit } = req.body;
+    const estadoId = estado === '' || estado === undefined || estado === null ? null : Number(estado);
     
     // Validar campos requeridos
     if (!codigo_unico || !titulo) {
@@ -87,7 +88,7 @@ router.post('/tareas', async (req, res) => {
     const [result] = await pool.query(
       `INSERT INTO tareas (codigo_unico, titulo, url_tarea, empresa, submodulo, rama, estado, hash_commit)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [codigo_unico, titulo, url_tarea, empresa, submodulo, rama, estado, hash_commit]
+      [codigo_unico, titulo, url_tarea, empresa, submodulo, rama, Number.isNaN(estadoId) ? null : estadoId, hash_commit]
     );
     
     res.status(201).json({
@@ -108,12 +109,13 @@ router.put('/tareas/:codigo', async (req, res) => {
   try {
     const { codigo } = req.params;
     const { titulo, url_tarea, empresa, submodulo, rama, estado, hash_commit } = req.body;
+    const estadoId = estado === '' || estado === undefined || estado === null ? null : Number(estado);
     
     const [result] = await pool.query(
       `UPDATE tareas 
        SET titulo = ?, url_tarea = ?, empresa = ?, submodulo = ?, rama = ?, estado = ?, hash_commit = ?
        WHERE codigo_unico = ?`,
-      [titulo, url_tarea, empresa, submodulo, rama, estado, hash_commit, codigo]
+      [titulo, url_tarea, empresa, submodulo, rama, Number.isNaN(estadoId) ? null : estadoId, hash_commit, codigo]
     );
     
     if (result.affectedRows === 0) {
